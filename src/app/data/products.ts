@@ -12,11 +12,11 @@ export interface Product {
 export const products: Product[] = [
   {
     id: '1',
-    name: 'Excalibur Longsword',
+    name: 'Not so Longsword',
     category: 'sword',
-    description: 'A legendary blade forged in the fires of ancient smiths. This longsword features a perfectly balanced steel blade with intricate engravings along the fuller.',
+    description: "A legendary blade that's not as long as it seems.",
     price: 450,
-    image: 'https://images.unsplash.com/photo-1757083840090-17a7bfca08c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtZWRpZXZhbCUyMHN3b3JkJTIwd2VhcG9ufGVufDF8fHx8MTc3MzQ5NTUyN3ww&ixlib=rb-4.1.0&q=80&w=1080',
+    image: '/images/longsword.jpg',
     inStock: true,
     specifications: [
       'Blade Length: 36 inches',
@@ -27,11 +27,11 @@ export const products: Product[] = [
   },
   {
     id: '2',
-    name: 'Nordic Battle Axe',
+    name: 'Suspicious Battle Axe',
     category: 'axe',
-    description: 'A fearsome weapon wielded by Viking warriors. Double-bladed design with a reinforced hickory shaft for maximum impact.',
+    description: 'A fearsome weapon wielded by Viking warriors. Double-bladed design with a soft foamed handle for maximum comfort.',
     price: 320,
-    image: 'https://images.unsplash.com/photo-1770820986351-fe8c9ae24a19?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtZWRpZXZhbCUyMGJhdHRsZSUyMGF4ZXxlbnwxfHx8fDE3NzM1MTM1NjF8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    image: '/images/suspiciousaxe.jpg',
     inStock: true,
     specifications: [
       'Axe Head: 10 inches',
@@ -42,11 +42,11 @@ export const products: Product[] = [
   },
   {
     id: '3',
-    name: 'Knights Templar Spear',
+    name: 'Dull Spear',
     category: 'spear',
-    description: 'A noble weapon carried by crusaders. Features a leaf-shaped blade with a sturdy ash wood pole.',
+    description: "A noble weapon that could've staked countless warrriors, had it been sharpened.",
     price: 280,
-    image: 'https://images.unsplash.com/photo-1600081521520-3ad74ab4c753?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtZWRpZXZhbCUyMHNwZWFyJTIwd2VhcG9ufGVufDF8fHx8MTc3MzUxMzU2Mnww&ixlib=rb-4.1.0&q=80&w=1080',
+    image: '/images/dullspear.webp',
     inStock: true,
     specifications: [
       'Spearhead: 14 inches',
@@ -59,9 +59,9 @@ export const products: Product[] = [
     id: '4',
     name: 'Kite Shield of Valor',
     category: 'shield',
-    description: 'A defensive masterpiece emblazoned with heraldic designs. Constructed from laminated wood with reinforced steel rim.',
+    description: "A massive wooden shield with heraldic designs. It's so big you can use it to glide.",
     price: 380,
-    image: 'https://images.unsplash.com/photo-1596716148130-f95f2b735a92?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtZWRpZXZhbCUyMHNoaWVsZCUyMGFybW9yfGVufDF8fHx8MTc3MzQ5Njk5OHww&ixlib=rb-4.1.0&q=80&w=1080',
+    image: '/images/kiteshield.avif',
     inStock: true,
     specifications: [
       'Height: 42 inches',
@@ -74,9 +74,9 @@ export const products: Product[] = [
     id: '5',
     name: 'Claymore Greatsword',
     category: 'sword',
-    description: 'A Scottish Highland weapon of immense power. This two-handed sword features a distinctive cross-guard and powerful cutting edge.',
+    description: 'This greatsword is taller than you.',
     price: 580,
-    image: 'https://images.unsplash.com/photo-1757083840090-17a7bfca08c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtZWRpZXZhbCUyMHN3b3JkJTIwd2VhcG9ufGVufDF8fHx8MTc3MzQ5NTUyN3ww&ixlib=rb-4.1.0&q=80&w=1080',
+    image: '/images/greatsword.jpg',
     inStock: true,
     specifications: [
       'Blade Length: 48 inches',
@@ -87,11 +87,11 @@ export const products: Product[] = [
   },
   {
     id: '6',
-    name: 'Throwing Axe Set',
+    name: 'Cool Axe',
     category: 'axe',
-    description: 'A set of three perfectly balanced throwing axes. Ideal for both combat and competition.',
+    description: "Don't throw it, it won't return.",
     price: 195,
-    image: 'https://images.unsplash.com/photo-1770820986351-fe8c9ae24a19?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtZWRpZXZhbCUyMGJhdHRsZSUyMGF4ZXxlbnwxfHx8fDE3NzM1MTM1NjF8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    image: '/images/throwingaxe.webp',
     inStock: false,
     specifications: [
       'Set of 3 axes',
@@ -102,26 +102,26 @@ export const products: Product[] = [
   },
   {
     id: '7',
-    name: 'Macedonian Sarissa',
+    name: 'Olimpian God Spear',
     category: 'spear',
-    description: 'An extra-long pike used by ancient phalanx formations. Perfect for keeping enemies at bay.',
+    description: 'A legendary wooden relic that picked in a spot most difficult to get.',
     price: 340,
-    image: 'https://images.unsplash.com/photo-1600081521520-3ad74ab4c753?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtZWRpZXZhbCUyMHNwZWFyJTIwd2VhcG9ufGVufDF8fHx8MTc3MzUxMzU2Mnww&ixlib=rb-4.1.0&q=80&w=1080',
+    image: '/images/spearofgod.jpg',
     inStock: true,
     specifications: [
       'Total Length: 96 inches',
       'Weight: 6.8 lbs',
-      'Material: Steel tip & Ash pole',
+      'Material: Spare wood',
       'Style: Phalanx Pike'
     ]
   },
   {
     id: '8',
-    name: 'Round Shield of the North',
+    name: 'Round Shield',
     category: 'shield',
-    description: 'A Viking-style round shield with boss center. Hand-painted with traditional Nordic patterns.',
+    description: "it's round.",
     price: 265,
-    image: 'https://images.unsplash.com/photo-1596716148130-f95f2b735a92?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtZWRpZXZhbCUyMHNoaWVsZCUyMGFybW9yfGVufDF8fHx8MTc3MzQ5Njk5OHww&ixlib=rb-4.1.0&q=80&w=1080',
+    image: '/images/roundshield.jpg',
     inStock: true,
     specifications: [
       'Diameter: 30 inches',
