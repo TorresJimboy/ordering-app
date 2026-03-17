@@ -26,7 +26,7 @@ export const CatalogPage: React.FC = () => {
       >
         <div className="absolute inset-0 bg-background/80"></div>
         <div className="relative container mx-auto text-center">
-          <h1 className="mb-4">Medieval Armory ni mama mo</h1>
+          <h1 className="mb-4">Medieval Armory please work</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Discover legendary weapons forged by master craftsmen. Each piece tells a story of valor and honor.
           </p>
