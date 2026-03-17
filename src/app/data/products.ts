@@ -1,3 +1,12 @@
+import longsword from '@/assets/longsword.jpg'
+import suspiciousAxe from '@/assets/suspiciousaxe.jpg'
+import dullSpear from '@/assets/dullspear.webp'
+import kiteShield from '@/assets/kiteshield.avif'
+import greatsword from '@/assets/greatsword.jpg'
+import throwingAxe from '@/assets/throwingaxe.webp'
+import spearOfGod from '@/assets/spearofgod.jpg'
+import roundShield from '@/assets/roundshield.jpg'
+
 export interface Product {
   id: string;
   name: string;
@@ -16,7 +25,7 @@ export const products: Product[] = [
     category: 'sword',
     description: "A legendary blade that's not as long as it seems.",
     price: 450,
-    image: '/ordering-app/longsword.jpg',
+    image: longsword,
     inStock: true,
     specifications: [
       'Blade Length: 36 inches',
@@ -31,7 +40,7 @@ export const products: Product[] = [
     category: 'axe',
     description: 'A fearsome weapon wielded by Viking warriors. Double-bladed design with a soft foamed handle for maximum comfort.',
     price: 320,
-    image: '/ordering-app/suspiciousaxe.jpg',
+    image: suspiciousAxe,
     inStock: true,
     specifications: [
       'Axe Head: 10 inches',
@@ -46,7 +55,7 @@ export const products: Product[] = [
     category: 'spear',
     description: "A noble weapon that could've staked countless warrriors, had it been sharpened.",
     price: 280,
-    image: '/ordering-app/dullspear.webp',
+    image: dullSpear,
     inStock: true,
     specifications: [
       'Spearhead: 14 inches',
@@ -61,7 +70,7 @@ export const products: Product[] = [
     category: 'shield',
     description: "A massive wooden shield with heraldic designs. It's so big you can use it to glide.",
     price: 380,
-    image: '/ordering-app/kiteshield.avif',
+    image: kiteShield,
     inStock: true,
     specifications: [
       'Height: 42 inches',
@@ -76,7 +85,7 @@ export const products: Product[] = [
     category: 'sword',
     description: 'This greatsword is taller than you.',
     price: 580,
-    image: '/ordering-app/greatsword.jpg',
+    image: greatsword,
     inStock: true,
     specifications: [
       'Blade Length: 48 inches',
@@ -91,7 +100,7 @@ export const products: Product[] = [
     category: 'axe',
     description: "Don't throw it, it won't return.",
     price: 195,
-    image: '/ordering-app/throwingaxe.webp',
+    image: throwingAxe,
     inStock: false,
     specifications: [
       'Set of 3 axes',
@@ -106,7 +115,7 @@ export const products: Product[] = [
     category: 'spear',
     description: 'A legendary wooden relic that picked in a spot most difficult to get.',
     price: 340,
-    image: '/ordering-app/spearofgod.jpg',
+    image: spearOfGod,
     inStock: true,
     specifications: [
       'Total Length: 96 inches',
@@ -121,7 +130,7 @@ export const products: Product[] = [
     category: 'shield',
     description: "it's round.",
     price: 265,
-    image: '/ordering-app/roundshield.jpg',
+    image: roundShield,
     inStock: true,
     specifications: [
       'Diameter: 30 inches',
