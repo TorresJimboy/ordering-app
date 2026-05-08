@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router';
 import { useApp } from '../contexts/AppContext';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
-import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { ImageWithFallback } from '../components/shared/ImageWithFallback';
 import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
 
 export const CartPage: React.FC = () => {

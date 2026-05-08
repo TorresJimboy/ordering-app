@@ -9,6 +9,7 @@ import { Label } from '../components/ui/label';
 export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
   const { cart, getCartTotal, createOrder } = useApp();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -25,10 +26,16 @@ export const CheckoutPage: React.FC = () => {
     return null;
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const order = createOrder();
-    navigate(`/confirmation/${order.id}`);
+    setIsSubmitting(true);
+
+    try {
+      const order = await createOrder();
+      navigate(`/confirmation/${order.id}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -139,8 +146,9 @@ export const CheckoutPage: React.FC = () => {
                 type="submit"
                 size="lg"
                 className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                disabled={isSubmitting}
               >
-                Complete Order
+                {isSubmitting ? 'Placing Order...' : 'Complete Order'}
               </Button>
             </form>
           </div>

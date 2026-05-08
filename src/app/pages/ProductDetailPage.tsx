@@ -1,20 +1,29 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { products } from '../data/products';
 import { useApp } from '../contexts/AppContext';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
-import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { ImageWithFallback } from '../components/shared/ImageWithFallback';
 import { ShoppingCart, ArrowLeft, Check } from 'lucide-react';
 import { toast } from 'sonner';
+import { useProducts } from '../hooks/useProducts';
 
 export const ProductDetailPage: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useApp();
+  const { products, isLoading } = useProducts();
   
   const product = products.find(p => p.id === id);
+
+  if (!product && isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="p-8 text-center text-muted-foreground">Loading product...</Card>
+      </div>
+    );
+  }
 
   if (!product) {
     return (

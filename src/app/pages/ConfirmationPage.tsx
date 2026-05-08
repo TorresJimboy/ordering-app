@@ -8,9 +8,17 @@ import { CheckCircle } from 'lucide-react';
 export const ConfirmationPage: React.FC = () => {
   const { orderId } = useParams();
   const navigate = useNavigate();
-  const { orders } = useApp();
+  const { orders, isOrdersLoading } = useApp();
 
   const order = orders.find(o => o.id === orderId);
+
+  if (isOrdersLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="p-8 text-center text-muted-foreground">Loading order...</Card>
+      </div>
+    );
+  }
 
   if (!order) {
     return (

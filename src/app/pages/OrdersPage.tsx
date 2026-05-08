@@ -5,7 +5,7 @@ import { Badge } from '../components/ui/badge';
 import { Package, Calendar, DollarSign } from 'lucide-react';
 
 export const OrdersPage: React.FC = () => {
-  const { orders } = useApp();
+  const { orders, isOrdersLoading } = useApp();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -25,7 +25,11 @@ export const OrdersPage: React.FC = () => {
       <div className="container mx-auto px-4 py-8">
         <h1 className="mb-8">Order History</h1>
 
-        {orders.length === 0 ? (
+        {isOrdersLoading ? (
+          <Card className="p-12 text-center text-muted-foreground">
+            Loading orders...
+          </Card>
+        ) : orders.length === 0 ? (
           <Card className="p-12 text-center">
             <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
             <h2 className="mb-2">No Orders Yet</h2>
@@ -35,7 +39,7 @@ export const OrdersPage: React.FC = () => {
           </Card>
         ) : (
           <div className="space-y-4">
-            {orders.slice().reverse().map(order => (
+            {orders.map(order => (
               <Card key={order.id} className="p-6 border-2 border-primary/30 hover:border-primary/60 transition-colors">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                   <div className="flex items-center gap-4">

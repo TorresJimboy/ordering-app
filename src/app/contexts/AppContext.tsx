@@ -1,5 +1,22 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
+} from 'firebase/auth';
+import {
+  addDoc,
+  collection,
+  doc,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+} from 'firebase/firestore';
 import { Product } from '../data/products';
+import { auth, db } from '../lib/firebase';
 
 interface CartItem {
   product: Product;
@@ -16,9 +33,11 @@ interface Order {
 
 interface AppContextType {
   user: { email: string; name: string } | null;
-  login: (email: string, password: string) => boolean;
-  signup: (name: string, email: string, password: string) => boolean;
-  logout: () => void;
+  isAdmin: boolean;
+  isAuthLoading: boolean;
+  login: (email: string, password: string) => Promise<boolean>;
+  signup: (name: string, email: string, password: string) => Promise<boolean>;
+  logout: () => Promise<void>;
   cart: CartItem[];
   addToCart: (product: Product) => void;
   removeFromCart: (productId: string) => void;
@@ -26,10 +45,19 @@ interface AppContextType {
   clearCart: () => void;
   getCartTotal: () => number;
   orders: Order[];
-  createOrder: () => Order;
+  isOrdersLoading: boolean;
+  createOrder: () => Promise<Order>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
+
+const getDisplayName = (email: string | null, displayName: string | null) => {
+  if (displayName) {
+    return displayName;
+  }
+
+  return email?.split('@')[0] ?? 'User';
+};
 
 export const useApp = () => {
   const context = useContext(AppContext);
@@ -41,43 +69,105 @@ export const useApp = () => {
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<{ email: string; name: string } | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [orders, setOrders] = useState<Order[]>([
-    {
-      id: 'ORD-001',
-      items: [],
-      total: 450,
-      date: '2026-03-01',
-      status: 'delivered'
-    },
-    {
-      id: 'ORD-002',
-      items: [],
-      total: 840,
-      date: '2026-03-10',
-      status: 'confirmed'
-    }
-  ]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isOrdersLoading, setIsOrdersLoading] = useState(false);
 
-  const login = (email: string, password: string): boolean => {
-    // Mock login - in real app would validate against backend
-    if (email && password) {
-      setUser({ email, name: email.split('@')[0] });
-      return true;
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(
+        firebaseUser?.email
+          ? {
+              email: firebaseUser.email,
+              name: getDisplayName(firebaseUser.email, firebaseUser.displayName),
+            }
+          : null
+      );
+      setIsAuthLoading(false);
+    });
+
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    if (!auth.currentUser) {
+      setIsAdmin(false);
+      return;
     }
-    return false;
+
+    const unsubscribe = onSnapshot(
+      doc(db, 'admins', auth.currentUser.uid),
+      (snapshot) => {
+        setIsAdmin(snapshot.exists());
+      },
+      () => {
+        setIsAdmin(false);
+      }
+    );
+
+    return unsubscribe;
+  }, [user?.email]);
+
+  useEffect(() => {
+    if (!auth.currentUser) {
+      setOrders([]);
+      setIsOrdersLoading(false);
+      return;
+    }
+
+    setIsOrdersLoading(true);
+    const ordersQuery = query(
+      collection(db, 'users', auth.currentUser.uid, 'orders'),
+      orderBy('createdAt', 'desc')
+    );
+
+    const unsubscribe = onSnapshot(
+      ordersQuery,
+      (snapshot) => {
+        const nextOrders = snapshot.docs.map((orderDoc) => {
+          const data = orderDoc.data() as Omit<Order, 'id'>;
+          return {
+            id: orderDoc.id,
+            ...data,
+          };
+        });
+
+        setOrders(nextOrders);
+        setIsOrdersLoading(false);
+      },
+      () => {
+        setOrders([]);
+        setIsOrdersLoading(false);
+      }
+    );
+
+    return unsubscribe;
+  }, [user?.email]);
+
+  const login = async (email: string, password: string): Promise<boolean> => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      return true;
+    } catch {
+      return false;
+    }
   };
 
-  const signup = (name: string, email: string, password: string): boolean => {
-    // Mock signup
-    if (name && email && password) {
+  const signup = async (name: string, email: string, password: string): Promise<boolean> => {
+    try {
+      const credential = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(credential.user, { displayName: name });
       setUser({ email, name });
       return true;
+    } catch {
+      return false;
     }
-    return false;
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await signOut(auth);
     setUser(null);
     setCart([]);
   };
@@ -120,23 +210,41 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return cart.reduce((total, item) => total + (item.product.price * item.quantity), 0);
   };
 
-  const createOrder = (): Order => {
-    const order: Order = {
-      id: `ORD-${String(orders.length + 1).padStart(3, '0')}`,
+  const createOrder = async (): Promise<Order> => {
+    if (!auth.currentUser) {
+      throw new Error('You must be signed in to place an order.');
+    }
+
+    const orderData = {
       items: [...cart],
       total: getCartTotal(),
       date: new Date().toISOString().split('T')[0],
-      status: 'pending'
+      status: 'pending' as const,
+      createdAt: serverTimestamp(),
     };
-    setOrders(prev => [...prev, order]);
+
+    const orderRef = await addDoc(
+      collection(db, 'users', auth.currentUser.uid, 'orders'),
+      orderData
+    );
+
     clearCart();
-    return order;
+
+    return {
+      id: orderRef.id,
+      items: orderData.items,
+      total: orderData.total,
+      date: orderData.date,
+      status: orderData.status,
+    };
   };
 
   return (
     <AppContext.Provider
       value={{
         user,
+        isAdmin,
+        isAuthLoading,
         login,
         signup,
         logout,
@@ -147,6 +255,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         clearCart,
         getCartTotal,
         orders,
+        isOrdersLoading,
         createOrder
       }}
     >

@@ -2,16 +2,27 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useApp } from '../contexts/AppContext';
 import { Button } from './ui/button';
-import { Shield, ShoppingCart, User, LogOut, History } from 'lucide-react';
+import { Shield, ShoppingCart, User, LogOut, History, Settings } from 'lucide-react';
 import { Badge } from './ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from './ui/alert-dialog';
 
 export const Header: React.FC = () => {
-  const { user, logout, cart } = useApp();
+  const { user, isAdmin, logout, cart } = useApp();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
+  const handleLogout = async () => {
+    navigate('/', { replace: true });
+    await logout();
   };
 
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -53,18 +64,44 @@ export const Header: React.FC = () => {
                   </Button>
                 </Link>
 
+                {isAdmin && (
+                  <Link to="/admin/products">
+                    <Button variant="ghost" className="text-foreground hover:text-primary">
+                      <Settings className="w-5 h-5 mr-2" />
+                      Admin
+                    </Button>
+                  </Link>
+                )}
+
                 <div className="flex items-center gap-2 px-3 py-1 bg-secondary/50 rounded-md">
                   <User className="w-4 h-4 text-primary" />
                   <span className="text-sm">{user.name}</span>
                 </div>
 
-                <Button
-                  variant="ghost"
-                  onClick={handleLogout}
-                  className="text-foreground hover:text-destructive"
-                >
-                  <LogOut className="w-5 h-5" />
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="text-foreground hover:text-destructive"
+                    >
+                      <LogOut className="w-5 h-5" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Log out?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        You will need to sign in again to view your cart and orders.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleLogout}>
+                        Log out
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </>
             )}
           </nav>

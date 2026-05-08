@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from 'react-router';
+import { createHashRouter, Navigate } from 'react-router';
 import { Root } from './Root';
 import { LoginPage } from './pages/LoginPage';
 import { CatalogPage } from './pages/CatalogPage';
@@ -7,8 +7,9 @@ import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { ConfirmationPage } from './pages/ConfirmationPage';
 import { OrdersPage } from './pages/OrdersPage';
+import { AdminProductsPage } from './pages/AdminProductsPage';
 
-export const router = createBrowserRouter([
+export const router = createHashRouter([
   {
     path: '/',
     Component: Root,
@@ -40,6 +41,10 @@ export const router = createBrowserRouter([
       {
         path: 'orders',
         Component: OrdersPage
+      },
+      {
+        path: 'admin/products',
+        Component: AdminProductsPage
       },
       {
         path: '*',

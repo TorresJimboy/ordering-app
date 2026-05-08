@@ -5,7 +5,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Card } from '../components/ui/card';
-import { Sword, Shield } from 'lucide-react';
+import { Eye, EyeOff, Sword, Shield } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -16,20 +16,27 @@ export const LoginPage: React.FC = () => {
     email: '',
     password: ''
   });
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    setIsSubmitting(true);
     
-    if (isSignup) {
-      const success = signup(formData.name, formData.email, formData.password);
+    try {
+      const success = isSignup
+        ? await signup(formData.name, formData.email, formData.password)
+        : await login(formData.email, formData.password);
+
       if (success) {
         navigate('/catalog');
+      } else {
+        setError(isSignup ? 'Unable to create account.' : 'Invalid email or password.');
       }
-    } else {
-      const success = login(formData.email, formData.password);
-      if (success) {
-        navigate('/catalog');
-      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -88,20 +95,38 @@ export const LoginPage: React.FC = () => {
 
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              required
-              className="bg-input-background border-border"
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="********"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                required
+                className="bg-input-background border-border pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((isVisible) => !isVisible)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-primary"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? (
+                  <EyeOff className="size-4" />
+                ) : (
+                  <Eye className="size-4" />
+                )}
+              </button>
+            </div>
           </div>
 
           <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-            {isSignup ? 'Create Account' : 'Enter'}
+            {isSubmitting ? 'Please wait...' : isSignup ? 'Create Account' : 'Enter'}
           </Button>
+
+          {error && (
+            <p className="text-center text-sm text-destructive">{error}</p>
+          )}
 
           <div className="text-center">
             <button

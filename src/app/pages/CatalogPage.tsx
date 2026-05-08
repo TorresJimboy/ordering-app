@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router';
-import { products } from '../data/products';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
-import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { ImageWithFallback } from '../components/shared/ImageWithFallback';
 import { Tabs, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { useProducts } from '../hooks/useProducts';
 
 export const CatalogPage: React.FC = () => {
   const [filter, setFilter] = useState<string>('all');
+  const { products, isLoading, error, isUsingDefaults } = useProducts();
 
   const filteredProducts = filter === 'all' 
     ? products 
@@ -34,6 +35,12 @@ export const CatalogPage: React.FC = () => {
       </div>
 
       <div className="container mx-auto px-4 py-12">
+        {(error || isUsingDefaults) && (
+          <Card className="mb-6 border-2 border-primary/30 bg-card/70 p-4 text-sm text-muted-foreground">
+            {error || 'Showing default products. Admins can import them into Firestore from the admin page.'}
+          </Card>
+        )}
+
         <div className="flex justify-center mb-8">
           <Tabs defaultValue="all" onValueChange={setFilter}>
             <TabsList className="bg-card border-2 border-primary/30">
@@ -91,6 +98,12 @@ export const CatalogPage: React.FC = () => {
             </Card>
           ))}
         </div>
+
+        {isLoading && (
+          <p className="mt-6 text-center text-sm text-muted-foreground">
+            Syncing latest products...
+          </p>
+        )}
       </div>
     </div>
   );
