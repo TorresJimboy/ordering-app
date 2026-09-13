@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { Navigate } from 'react-router';
 import { useApp } from '../contexts/AppContext';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
@@ -7,32 +7,36 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 
 export const CheckoutPage: React.FC = () => {
-  const navigate = useNavigate();
-  const { cart, getCartTotal, createOrder } = useApp();
+  const { user, cart, getCartTotal, createOrder } = useApp();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [completedOrderId, setCompletedOrderId] = useState<string | null>(null);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    address: '',
-    city: '',
-    postalCode: '',
-    cardNumber: '',
-    expiryDate: '',
-    cvv: ''
+    fullName: user?.name || 'Guest',
+    email: user?.email.includes('@') ? user.email : 'guest@demo.local',
+    address: '123 Demo Street',
+    city: 'Demo City',
+    postalCode: '12345'
   });
 
-  if (cart.length === 0) {
-    navigate('/cart');
-    return null;
+  if (completedOrderId) {
+    return <Navigate to={`/confirmation/${completedOrderId}`} replace />;
+  }
+
+  if (cart.length === 0 && !isSubmitting) {
+    return <Navigate to="/cart" replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     setIsSubmitting(true);
 
     try {
       const order = await createOrder();
-      navigate(`/confirmation/${order.id}`);
+      setCompletedOrderId(order.id);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Unable to place demo order.');
     } finally {
       setIsSubmitting(false);
     }
@@ -104,43 +108,14 @@ export const CheckoutPage: React.FC = () => {
               </Card>
 
               <Card className="p-6 border-2 border-primary/30">
-                <h3 className="mb-4">Payment Information</h3>
-                <div className="grid md:grid-cols-3 gap-4">
-                  <div className="md:col-span-3 space-y-2">
-                    <Label htmlFor="cardNumber">Card Number</Label>
-                    <Input
-                      id="cardNumber"
-                      placeholder="1234 5678 9012 3456"
-                      required
-                      value={formData.cardNumber}
-                      onChange={(e) => setFormData({ ...formData, cardNumber: e.target.value })}
-                      className="bg-input-background border-border"
-                    />
-                  </div>
-                  <div className="md:col-span-2 space-y-2">
-                    <Label htmlFor="expiryDate">Expiry Date</Label>
-                    <Input
-                      id="expiryDate"
-                      placeholder="MM/YY"
-                      required
-                      value={formData.expiryDate}
-                      onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
-                      className="bg-input-background border-border"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="cvv">CVV</Label>
-                    <Input
-                      id="cvv"
-                      placeholder="123"
-                      required
-                      value={formData.cvv}
-                      onChange={(e) => setFormData({ ...formData, cvv: e.target.value })}
-                      className="bg-input-background border-border"
-                    />
-                  </div>
-                </div>
+                <h3 className="mb-4">Demo Checkout</h3>
+                <p className="text-muted-foreground">
+                  Place a sample order using the example shipping details above.
+                  No payment is required, and nothing will be shipped.
+                </p>
               </Card>
+
+              {error && <p role="alert" className="text-destructive">{error}</p>}
 
               <Button
                 type="submit"
@@ -148,7 +123,7 @@ export const CheckoutPage: React.FC = () => {
                 className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Placing Order...' : 'Complete Order'}
+                {isSubmitting ? 'Placing Order...' : 'Complete Demo Order'}
               </Button>
             </form>
           </div>

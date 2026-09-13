@@ -1,22 +1,11 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import {
-  createUserWithEmailAndPassword,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  signOut,
-  updateProfile,
-} from 'firebase/auth';
-import {
-  addDoc,
-  collection,
-  doc,
-  onSnapshot,
-  orderBy,
-  query,
-  serverTimestamp,
-} from 'firebase/firestore';
 import { Product } from '../data/products';
-import { auth, db } from '../lib/firebase';
+import { readStored, writeStored } from '../lib/storage';
+
+interface DemoUser {
+  email: string;
+  name: string;
+}
 
 interface CartItem {
   product: Product;
@@ -32,11 +21,11 @@ interface Order {
 }
 
 interface AppContextType {
-  user: { email: string; name: string } | null;
+  user: DemoUser | null;
   isAdmin: boolean;
   isAuthLoading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
-  signup: (name: string, email: string, password: string) => Promise<boolean>;
+  login: (email: string, password?: string) => Promise<boolean>;
+  signup: (name: string, email: string, password?: string) => Promise<boolean>;
   logout: () => Promise<void>;
   cart: CartItem[];
   addToCart: (product: Product) => void;
@@ -49,140 +38,75 @@ interface AppContextType {
   createOrder: () => Promise<Order>;
 }
 
-const AppContext = createContext<AppContextType | undefined>(undefined);
+const SESSION_KEY = 'ordering-app-demo-user';
+const userKey = (email: string) => `ordering-app-demo-profile:${email}`;
+const cartKey = (email: string) => `ordering-app-demo-cart:${email}`;
+const ordersKey = (email: string) => `ordering-app-demo-orders:${email}`;
 
-const getDisplayName = (email: string | null, displayName: string | null) => {
-  if (displayName) {
-    return displayName;
-  }
-
-  return email?.split('@')[0] ?? 'User';
+const readUser = () => {
+  const stored = readStored<DemoUser | null>(SESSION_KEY, null);
+  return stored && typeof stored.email === 'string' && typeof stored.name === 'string'
+    ? stored : null;
 };
+
+const readList = <T,>(key: string): T[] => {
+  const stored = readStored<T[]>(key, []);
+  return Array.isArray(stored) ? stored : [];
+};
+
+const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const useApp = () => {
   const context = useContext(AppContext);
-  if (!context) {
-    throw new Error('useApp must be used within AppProvider');
-  }
+  if (!context) throw new Error('useApp must be used within AppProvider');
   return context;
 };
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<{ email: string; name: string } | null>(null);
-  const [isAuthLoading, setIsAuthLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [isOrdersLoading, setIsOrdersLoading] = useState(false);
+  const [user, setUser] = useState<DemoUser | null>(readUser);
+  const [cart, setCart] = useState<CartItem[]>(() => user ? readList(cartKey(user.email)) : []);
+  const [orders, setOrders] = useState<Order[]>(() => user ? readList(ordersKey(user.email)) : []);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(
-        firebaseUser?.email
-          ? {
-              email: firebaseUser.email,
-              name: getDisplayName(firebaseUser.email, firebaseUser.displayName),
-            }
-          : null
-      );
-      setIsAuthLoading(false);
-    });
-
-    return unsubscribe;
-  }, []);
-
-  useEffect(() => {
-    if (!auth.currentUser) {
-      setIsAdmin(false);
-      return;
+    writeStored(SESSION_KEY, user);
+    if (user) {
+      writeStored(cartKey(user.email), cart);
+      writeStored(ordersKey(user.email), orders);
     }
+  }, [user, cart, orders]);
 
-    const unsubscribe = onSnapshot(
-      doc(db, 'admins', auth.currentUser.uid),
-      (snapshot) => {
-        setIsAdmin(snapshot.exists());
-      },
-      () => {
-        setIsAdmin(false);
-      }
-    );
-
-    return unsubscribe;
-  }, [user?.email]);
-
-  useEffect(() => {
-    if (!auth.currentUser) {
-      setOrders([]);
-      setIsOrdersLoading(false);
-      return;
-    }
-
-    setIsOrdersLoading(true);
-    const ordersQuery = query(
-      collection(db, 'users', auth.currentUser.uid, 'orders'),
-      orderBy('createdAt', 'desc')
-    );
-
-    const unsubscribe = onSnapshot(
-      ordersQuery,
-      (snapshot) => {
-        const nextOrders = snapshot.docs.map((orderDoc) => {
-          const data = orderDoc.data() as Omit<Order, 'id'>;
-          return {
-            id: orderDoc.id,
-            ...data,
-          };
-        });
-
-        setOrders(nextOrders);
-        setIsOrdersLoading(false);
-      },
-      () => {
-        setOrders([]);
-        setIsOrdersLoading(false);
-      }
-    );
-
-    return unsubscribe;
-  }, [user?.email]);
-
-  const login = async (email: string, password: string): Promise<boolean> => {
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      return true;
-    } catch {
-      return false;
-    }
+  const enterDemo = (email: string, name?: string) => {
+    const identity = email.trim().toLowerCase() || 'guest@demo.local';
+    const previous = readStored<DemoUser | null>(userKey(identity), null);
+    const nextUser = {
+      email: identity,
+      name: name?.trim() || previous?.name || (email.trim() ? email.trim().split('@')[0] : 'Guest'),
+    };
+    writeStored(userKey(identity), nextUser);
+    writeStored(SESSION_KEY, nextUser);
+    setCart(readList(cartKey(identity)));
+    setOrders(readList(ordersKey(identity)));
+    setUser(nextUser);
+    return true;
   };
 
-  const signup = async (name: string, email: string, password: string): Promise<boolean> => {
-    try {
-      const credential = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(credential.user, { displayName: name });
-      setUser({ email, name });
-      return true;
-    } catch {
-      return false;
-    }
-  };
+  // Passwords are intentionally ignored and never stored in this static demo.
+  const login = async (email: string) => enterDemo(email);
+  const signup = async (name: string, email: string) => enterDemo(email, name);
 
   const logout = async () => {
-    await signOut(auth);
+    writeStored(SESSION_KEY, null);
     setUser(null);
     setCart([]);
+    setOrders([]);
   };
 
   const addToCart = (product: Product) => {
     setCart(prev => {
       const existingItem = prev.find(item => item.product.id === product.id);
-      if (existingItem) {
-        return prev.map(item =>
-          item.product.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      }
-      return [...prev, { product, quantity: 1 }];
+      return existingItem
+        ? prev.map(item => item.product.id === product.id ? { ...item, quantity: item.quantity + 1 } : item)
+        : [...prev, { product, quantity: 1 }];
     });
   };
 
@@ -191,74 +115,38 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const updateQuantity = (productId: string, quantity: number) => {
-    if (quantity <= 0) {
-      removeFromCart(productId);
-      return;
-    }
-    setCart(prev =>
-      prev.map(item =>
-        item.product.id === productId ? { ...item, quantity } : item
-      )
-    );
+    if (quantity <= 0) return removeFromCart(productId);
+    setCart(prev => prev.map(item => item.product.id === productId ? { ...item, quantity } : item));
   };
 
-  const clearCart = () => {
-    setCart([]);
-  };
-
-  const getCartTotal = (): number => {
-    return cart.reduce((total, item) => total + (item.product.price * item.quantity), 0);
-  };
+  const clearCart = () => setCart([]);
+  const getCartTotal = () => cart.reduce((total, item) => total + item.product.price * item.quantity, 0);
 
   const createOrder = async (): Promise<Order> => {
-    if (!auth.currentUser) {
-      throw new Error('You must be signed in to place an order.');
-    }
+    if (!user) throw new Error('Enter the demo to place an order.');
+    if (cart.length === 0) throw new Error('Add an item to your cart first.');
 
-    const orderData = {
-      items: [...cart],
+    const order: Order = {
+      id: `DEMO-${crypto.randomUUID()}`,
+      items: cart.map(item => ({ ...item, product: { ...item.product } })),
       total: getCartTotal(),
-      date: new Date().toISOString().split('T')[0],
-      status: 'pending' as const,
-      createdAt: serverTimestamp(),
+      date: new Date().toISOString(),
+      status: 'confirmed',
     };
-
-    const orderRef = await addDoc(
-      collection(db, 'users', auth.currentUser.uid, 'orders'),
-      orderData
-    );
-
+    const nextOrders = [order, ...orders];
+    writeStored(ordersKey(user.email), nextOrders);
+    writeStored(cartKey(user.email), []);
+    setOrders(nextOrders);
     clearCart();
-
-    return {
-      id: orderRef.id,
-      items: orderData.items,
-      total: orderData.total,
-      date: orderData.date,
-      status: orderData.status,
-    };
+    return order;
   };
 
   return (
-    <AppContext.Provider
-      value={{
-        user,
-        isAdmin,
-        isAuthLoading,
-        login,
-        signup,
-        logout,
-        cart,
-        addToCart,
-        removeFromCart,
-        updateQuantity,
-        clearCart,
-        getCartTotal,
-        orders,
-        isOrdersLoading,
-        createOrder
-      }}
-    >
+    <AppContext.Provider value={{
+      user, isAdmin: Boolean(user), isAuthLoading: false, login, signup, logout,
+      cart, addToCart, removeFromCart, updateQuantity, clearCart, getCartTotal,
+      orders, isOrdersLoading: false, createOrder,
+    }}>
       {children}
     </AppContext.Provider>
   );

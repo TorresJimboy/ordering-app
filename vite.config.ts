@@ -4,7 +4,8 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
-  base: "/ordering-app/",
+  // Relative assets support both Netlify's root URL and GitHub Pages subpaths.
+  base: "./",
 
   plugins: [
     react(),

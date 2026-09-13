@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { Navigate, useNavigate } from 'react-router';
 import { useApp } from '../contexts/AppContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -9,7 +9,7 @@ import { Eye, EyeOff, Sword, Shield } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login, signup } = useApp();
+  const { user, login, signup } = useApp();
   const [isSignup, setIsSignup] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -19,6 +19,8 @@ export const LoginPage: React.FC = () => {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  if (user) return <Navigate to="/catalog" replace />;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,6 +66,10 @@ export const LoginPage: React.FC = () => {
           {isSignup ? 'Join the ranks of warriors' : 'Enter the armory'}
         </p>
 
+        <p className="text-center text-sm text-muted-foreground mb-6">
+          Try the demo with any email or username. Passwords are optional.
+        </p>
+
         <form onSubmit={handleSubmit} className="space-y-6">
           {isSignup && (
             <div className="space-y-2">
@@ -74,27 +80,25 @@ export const LoginPage: React.FC = () => {
                 placeholder="Sir Lancelot"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
                 className="bg-input-background border-border"
               />
             </div>
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">Email or username</Label>
             <Input
               id="email"
-              type="email"
+              type="text"
               placeholder="knight@castle.com"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              required
               className="bg-input-background border-border"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Password (optional)</Label>
             <div className="relative">
               <Input
                 id="password"
@@ -102,7 +106,6 @@ export const LoginPage: React.FC = () => {
                 placeholder="********"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                required
                 className="bg-input-background border-border pr-10"
               />
               <button
@@ -120,8 +123,13 @@ export const LoginPage: React.FC = () => {
             </div>
           </div>
 
-          <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+          <Button type="submit" disabled={isSubmitting} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
             {isSubmitting ? 'Please wait...' : isSignup ? 'Create Account' : 'Enter'}
+          </Button>
+
+          <Button type="button" variant="outline" className="w-full" disabled={isSubmitting}
+            onClick={async () => { await login(''); navigate('/catalog'); }}>
+            Continue as Guest
           </Button>
 
           {error && (

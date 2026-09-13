@@ -37,9 +37,9 @@ export const ConfirmationPage: React.FC = () => {
         <div className="max-w-2xl mx-auto text-center">
           <div className="mb-8">
             <CheckCircle className="w-24 h-24 text-primary mx-auto mb-6" />
-            <h1 className="mb-4">Order Confirmed!</h1>
+            <h1 className="mb-4">Demo Order Confirmed!</h1>
             <p className="text-xl text-muted-foreground">
-              Thank you for your purchase. Your legendary weapons are being prepared.
+              Your demo order has been saved in this browser.
             </p>
           </div>
 
@@ -84,9 +84,8 @@ export const ConfirmationPage: React.FC = () => {
           <div className="mt-12 p-6 bg-card/50 rounded-lg border border-primary/30">
             <h3 className="mb-2">What's Next?</h3>
             <p className="text-muted-foreground">
-              You will receive a confirmation email shortly. Your weapons will be carefully packed 
-              by our master craftsmen and shipped within 3-5 business days. Track your order status 
-              in your order history.
+              View this order in your order history or continue exploring the armory.
+              Demo orders do not send emails, charge payments, or ship products.
             </p>
           </div>
         </div>

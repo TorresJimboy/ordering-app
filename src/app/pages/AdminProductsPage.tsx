@@ -60,15 +60,6 @@ const toFormData = (product: Product): ProductFormData => ({
 });
 
 const getSaveErrorMessage = (error: unknown) => {
-  if (
-    typeof error === 'object' &&
-    error !== null &&
-    'code' in error &&
-    error.code === 'permission-denied'
-  ) {
-    return 'Permission denied. Check that you are logged in with an admin email and that Firestore rules are published.';
-  }
-
   if (error instanceof Error) {
     return error.message;
   }
@@ -78,7 +69,7 @@ const getSaveErrorMessage = (error: unknown) => {
 
 export const AdminProductsPage: React.FC = () => {
   const { isAdmin, isAuthLoading } = useApp();
-  const { products, isLoading, isUsingDefaults } = useProducts();
+  const { products, isLoading } = useProducts();
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [formData, setFormData] = useState<ProductFormData>(emptyForm);
   const [specificationsText, setSpecificationsText] = useState('');
@@ -150,7 +141,7 @@ export const AdminProductsPage: React.FC = () => {
   const handleImportDefaults = async () => {
     try {
       const didImport = await importDefaultProducts();
-      toast.success(didImport ? 'Default products imported' : 'Products collection already has items');
+      toast.success(didImport ? 'Default products imported' : 'The catalog already has products');
     } catch (error) {
       toast.error(getSaveErrorMessage(error));
     }
@@ -163,7 +154,7 @@ export const AdminProductsPage: React.FC = () => {
           <div>
             <h1 className="mb-2">Product Admin</h1>
             <p className="text-muted-foreground">
-              Manage the Firestore catalog used by the shop.
+              Manage the demo catalog. Changes are saved only in this browser.
             </p>
           </div>
 
@@ -173,9 +164,9 @@ export const AdminProductsPage: React.FC = () => {
           </Button>
         </div>
 
-        {isUsingDefaults && (
+        {products.length === 0 && (
           <Card className="mb-6 border-2 border-primary/30 bg-card/70 p-4 text-sm text-muted-foreground">
-            Firestore has no products yet. Use Import Defaults or create a product below.
+            Your catalog is empty. Use Import Defaults or create a product below.
           </Card>
         )}
 
@@ -224,7 +215,7 @@ export const AdminProductsPage: React.FC = () => {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Delete product?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                This removes {product.name} from Firestore.
+                                This removes {product.name} from the demo catalog in this browser.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -306,7 +297,7 @@ export const AdminProductsPage: React.FC = () => {
                   id="image"
                   value={formData.image}
                   onChange={(event) => setFormData({ ...formData, image: event.target.value })}
-                  placeholder="/ordering-app/images/longsword.jpg"
+                  placeholder={`${import.meta.env.BASE_URL}images/longsword.jpg`}
                   required
                 />
               </div>
